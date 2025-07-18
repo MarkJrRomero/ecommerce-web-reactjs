@@ -5,6 +5,8 @@ import {
   } from '@mui/material';
   import CloseIcon from '@mui/icons-material/Close';
   import CreditCardForm from './CreditCardForm';
+  import { useSelector } from 'react-redux';
+  import type { RootState } from '../redux/store';
   
   type Props = {
     open: boolean;
@@ -27,11 +29,20 @@ import {
   };
   
   export default function CreditCardModal({ open, onClose }: Props) {
+    const transactionLoading = useSelector((state: RootState) => state.transaction.loading);
     return (
-      <Modal open={open} onClose={onClose}>
+      <Modal
+        open={open}
+        onClose={transactionLoading ? undefined : onClose}
+        disableEscapeKeyDown={transactionLoading}
+      >
         <Box sx={style}>
           <Box display="flex" justifyContent="flex-end" alignItems="center">
-            <IconButton onClick={onClose}><CloseIcon /></IconButton>
+            {!transactionLoading && (
+              <IconButton onClick={onClose} disabled={transactionLoading}>
+                <CloseIcon />
+              </IconButton>
+            )}
           </Box>
           <CreditCardForm onClose={onClose} />
         </Box>

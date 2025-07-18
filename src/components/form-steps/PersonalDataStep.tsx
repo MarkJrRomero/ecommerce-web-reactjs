@@ -1,6 +1,6 @@
 import { Autocomplete, CircularProgress, Grid, TextField } from "@mui/material";
-import { FormikProps } from "formik";
-import { AppDispatch } from "../../redux/store";
+import type { FormikProps } from "formik";
+import type { AppDispatch } from "../../redux/store";
 import { fetchCities, clearCities } from "../../features/location/locationSlice";
 
 interface Props {
@@ -14,7 +14,7 @@ interface Props {
 export default function PersonalDataStep({ formik, countries, cities, loading, dispatch }: Props) {
   return (
     <>
-      <Grid item xs={12}>
+      <Grid size={{ xs: 12 }}>
         <TextField
           fullWidth
           label="Nombre Completo"
@@ -24,10 +24,10 @@ export default function PersonalDataStep({ formik, countries, cities, loading, d
           }}
           {...formik.getFieldProps("name")}
           error={formik.touched.name && !!formik.errors.name}
-          helperText={formik.touched.name && formik.errors.name}
+          helperText={formik.touched.name && formik.errors.name as string}
         />
       </Grid>
-      <Grid item xs={6}>
+      <Grid size={{ xs: 6 }}>
         <Autocomplete
           options={countries}
           loading={loading}
@@ -46,7 +46,7 @@ export default function PersonalDataStep({ formik, countries, cities, loading, d
               {...params}
               label="País"
               error={formik.touched.country && !!formik.errors.country}
-              helperText={formik.touched.country && formik.errors.country}
+              helperText={formik.touched.country && formik.errors.country as string}
               InputProps={{
                 ...params.InputProps,
                 endAdornment: (
@@ -60,7 +60,7 @@ export default function PersonalDataStep({ formik, countries, cities, loading, d
           )}
         />
       </Grid>
-      <Grid item xs={6}>
+      <Grid size={{ xs: 6 }}>
         <Autocomplete
           options={cities}
           loading={loading}
@@ -72,7 +72,7 @@ export default function PersonalDataStep({ formik, countries, cities, loading, d
               {...params}
               label="Ciudad"
               error={formik.touched.city && !!formik.errors.city}
-              helperText={formik.touched.city && formik.errors.city}
+              helperText={formik.touched.city && formik.errors.city as string}
               InputProps={{
                 ...params.InputProps,
                 endAdornment: (
@@ -86,25 +86,25 @@ export default function PersonalDataStep({ formik, countries, cities, loading, d
           )}
         />
       </Grid>
-      <Grid item xs={12}>
+      <Grid size={{ xs: 12 }}>
         <TextField
           fullWidth
           label="Dirección de entrega"
           {...formik.getFieldProps("address")}
           error={formik.touched.address && !!formik.errors.address}
-          helperText={formik.touched.address && formik.errors.address}
+          helperText={formik.touched.address && formik.errors.address as string}
         />
       </Grid>
-      <Grid item xs={6}>
+      <Grid size={{ xs: 6 }}>
         <TextField
           fullWidth
           label="Correo electrónico"
           {...formik.getFieldProps("email")}
           error={formik.touched.email && !!formik.errors.email}
-          helperText={formik.touched.email && formik.errors.email}
+          helperText={formik.touched.email && formik.errors.email as string}
         />
       </Grid>
-      <Grid item xs={6}>
+      <Grid size={{ xs: 6 }}>
         <TextField
           fullWidth
           onInput={(e) => {
@@ -114,7 +114,7 @@ export default function PersonalDataStep({ formik, countries, cities, loading, d
           label="Teléfono de contacto"
           {...formik.getFieldProps("phone")}
           error={formik.touched.phone && !!formik.errors.phone}
-          helperText={formik.touched.phone && formik.errors.phone}
+          helperText={formik.touched.phone && formik.errors.phone as string}
         />
       </Grid>
     </>

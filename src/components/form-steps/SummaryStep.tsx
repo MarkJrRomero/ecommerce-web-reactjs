@@ -7,10 +7,23 @@ import PublicIcon from "@mui/icons-material/Public";
 import LocationCityIcon from "@mui/icons-material/LocationCity";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import { FormikProps } from "formik";
+import type { FormikProps } from "formik";
 
 interface Props {
-  formik: FormikProps<any>;
+  formik: FormikProps<any> & {
+    values: {
+      name: string;
+      email: string;
+      phone: string;
+      address: string;
+      country: string;
+      city: string;
+      cardHolder: string;
+      cardNumber: string;
+      expiration: string;
+      cvc: string;
+    };
+  };
   selectedProduct: any;
   formatPrice: (n: number) => string;
 }

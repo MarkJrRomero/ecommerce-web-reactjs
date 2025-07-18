@@ -1,6 +1,6 @@
 import { Grid, TextField } from "@mui/material";
 import CreditCardVisual from "../CreditCardVisual";
-import { FormikProps } from "formik";
+import type { FormikProps } from "formik";
 
 interface Props {
   formik: FormikProps<any>;
@@ -14,7 +14,7 @@ interface Props {
 export default function CardDataStep({ formik, isCvcFocused, setIsCvcFocused, enforceText, enforceNumber, enforceDateExpiration }: Props) {
   return (
     <>
-      <Grid item xs={12}>
+        <Grid  size={{ xs: 12 }}>
         <CreditCardVisual
           cardNumber={formik.values.cardNumber}
           cardHolder={formik.values.cardHolder}
@@ -23,7 +23,7 @@ export default function CardDataStep({ formik, isCvcFocused, setIsCvcFocused, en
           isFlipped={isCvcFocused}
         />
       </Grid>
-      <Grid item xs={12}>
+      <Grid size={{ xs: 12 }}>
         <TextField
           fullWidth
           InputProps={{
@@ -39,10 +39,10 @@ export default function CardDataStep({ formik, isCvcFocused, setIsCvcFocused, en
           label="Nombre del titular de la tarjeta"
           {...formik.getFieldProps("cardHolder")}
           error={formik.touched.cardHolder && !!formik.errors.cardHolder}
-          helperText={formik.touched.cardHolder && formik.errors.cardHolder}
+          helperText={formik.touched.cardHolder && formik.errors.cardHolder as string}
         />
       </Grid>
-      <Grid item xs={12}>
+      <Grid  size={{ xs: 12 }}>
         <TextField
           fullWidth
           label="Número de Tarjeta"
@@ -53,10 +53,10 @@ export default function CardDataStep({ formik, isCvcFocused, setIsCvcFocused, en
             input.value = enforceNumber(input.value);
           }}
           error={formik.touched.cardNumber && !!formik.errors.cardNumber}
-          helperText={formik.touched.cardNumber && formik.errors.cardNumber}
+          helperText={formik.touched.cardNumber && formik.errors.cardNumber as string}
         />
       </Grid>
-      <Grid item xs={6}>
+      <Grid  size={{ xs: 6 }}>
         <TextField
           fullWidth
           label="Expiración (MM/YY)"
@@ -67,10 +67,10 @@ export default function CardDataStep({ formik, isCvcFocused, setIsCvcFocused, en
             input.value = enforceDateExpiration(input.value);
           }}
           error={formik.touched.expiration && !!formik.errors.expiration}
-          helperText={formik.touched.expiration && formik.errors.expiration}
+          helperText={formik.touched.expiration && formik.errors.expiration as string}
         />
       </Grid>
-      <Grid item xs={6}>
+      <Grid  size={{ xs: 6 }}>
         <TextField
           fullWidth
           label="CVC"
@@ -81,7 +81,7 @@ export default function CardDataStep({ formik, isCvcFocused, setIsCvcFocused, en
             input.value = enforceNumber(input.value);
           }}
           error={formik.touched.cvc && !!formik.errors.cvc}
-          helperText={formik.touched.cvc && formik.errors.cvc}
+          helperText={formik.touched.cvc && formik.errors.cvc as string}
           onFocus={() => setIsCvcFocused(true)}
           onBlur={() => setIsCvcFocused(false)}
         />

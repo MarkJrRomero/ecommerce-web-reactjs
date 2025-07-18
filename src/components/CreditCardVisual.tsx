@@ -1,4 +1,5 @@
 import { Box, Typography, useTheme, useMediaQuery } from "@mui/material";
+import { getCardType } from "../utils/utils";
 
 type Props = {
   cardNumber: string;
@@ -8,11 +9,7 @@ type Props = {
   isFlipped: boolean;
 };
 
-function getCardType(number: string) {
-  if (/^4/.test(number)) return "visa";
-  if (/^5[1-5]/.test(number)) return "mastercard";
-  return "default";
-}
+
 
 export default function CreditCardVisual({
   cardNumber,

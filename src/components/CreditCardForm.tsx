@@ -2,41 +2,25 @@ import { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import {
-  TextField,
   Button,
   Grid,
   Box,
-  Typography,
   Stepper,
   Step,
   StepLabel,
-  Autocomplete,
-  CircularProgress,
-  Paper,
-  Divider,
-  Avatar,
 } from "@mui/material";
-import PersonIcon from "@mui/icons-material/Person";
-import EmailIcon from "@mui/icons-material/Email";
-import PhoneIcon from "@mui/icons-material/Phone";
-import HomeIcon from "@mui/icons-material/Home";
-import PublicIcon from "@mui/icons-material/Public";
-import LocationCityIcon from "@mui/icons-material/LocationCity";
-import CreditCardIcon from "@mui/icons-material/CreditCard";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import type { AppDispatch, RootState } from "../redux/store";
-import { enforceDateExpiration, enforceNumber, enforceText, formatPrice } from "../utils/utils";
-import CreditCardVisual from "./CreditCardVisual";
-import { useDispatch } from "react-redux";
+import { enforceDateExpiration, enforceNumber, enforceText, formatPrice, getCardType } from "../utils/utils";
 import {
   fetchCountries,
-  fetchCities,
-  clearCities,
 } from "../features/location/locationSlice";
 import PersonalDataStep from "./form-steps/PersonalDataStep";
 import CardDataStep from "./form-steps/CardDataStep";
 import SummaryStep from "./form-steps/SummaryStep";
+import { submitTransaction } from "../features/order/transactionData";
+import type { Transaction } from "../features/order/transactionSlice";
+import CardProcessingAnimation from "./CardProcessingAnimation";
 
 type Props = {
   onClose: () => void;
@@ -75,6 +59,7 @@ export default function CreditCardForm({ onClose }: Props) {
   const { countries, cities, loading } = useSelector(
     (state: RootState) => state.location
   );
+  const transactionState = useSelector((state: RootState) => state.transaction);
 
   useEffect(() => {
     dispatch(fetchCountries());
@@ -172,92 +157,125 @@ export default function CreditCardForm({ onClose }: Props) {
 
   return (
     <>
-      <Stepper activeStep={step} alternativeLabel sx={{ mb: 2 }}>
-        {steps.map((label) => (
-          <Step key={label}>
-            <StepLabel>{label}</StepLabel>
-          </Step>
-        ))}
-      </Stepper>
-      <form autoComplete="off">
-        <Grid container spacing={2} sx={{ mb: 2 }}>
-          {step === 0 && (
-            <PersonalDataStep
-              formik={formik}
-              countries={countries}
-              cities={cities}
-              loading={loading}
-              dispatch={dispatch}
-            />
-          )}
-          {step === 1 && (
-            <CardDataStep
-              formik={formik}
-              isCvcFocused={isCvcFocused}
-              setIsCvcFocused={setIsCvcFocused}
-              enforceText={enforceText}
-              enforceNumber={enforceNumber}
-              enforceDateExpiration={enforceDateExpiration}
-            />
-          )}
-          {step === 2 && (
-            <SummaryStep
-              formik={formik}
-              selectedProduct={selectedProduct}
-              formatPrice={formatPrice}
-            />
-          )}
-        </Grid>
-        <Box display="flex" justifyContent="space-between">
-          {step > 0 && (
-            <Button
-              type="button"
-              variant="contained"
-              color="inherit"
-              sx={{ mr: 2 }}
-              fullWidth={false}
-              onClick={handleBack}
-            >
-              Atrás
-            </Button>
-          )}
-          <Button
-            type="button"
-            variant="contained"
-            color={step === 2 ? "success" : "primary"}
-            fullWidth={step === 0}
-            onClick={async () => {
-              if (step === 0) {
-                formik.setTouched({
-                  name: true,
-                  address: true,
-                  email: true,
-                  phone: true,
-                  city: true,
-                  country: true,
-                });
-                const valid = await personalSchema.isValid(formik.values);
-                if (valid) handleNext();
-                else formik.validateForm();
-              } else if (step === 1) {
-                formik.setTouched({
-                  cardHolder: true,
-                  cardNumber: true,
-                  expiration: true,
-                  cvc: true,
-                });
-                const valid = await cardSchema.isValid(formik.values);
-                if (valid) handleNext();
-                else formik.validateForm();
-              } else if (step === 2) {
-                handleNext();
-              }
-            }}
-          >
-            {step === 0 ? "Siguiente" : step === 1 ? "Resumen" : "Confirmar"}
-          </Button>
-        </Box>
-      </form>
+      {transactionState.loading ? (
+        <CardProcessingAnimation brand={getCardType(formik.values.cardNumber)} />
+      ) : (
+        <>
+          <Stepper activeStep={step} alternativeLabel sx={{ mb: 2 }}>
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+          <form autoComplete="off">
+            <Grid container spacing={2} sx={{ mb: 2 }}>
+              {step === 0 && (
+                <PersonalDataStep
+                  formik={formik}
+                  countries={countries}
+                  cities={cities}
+                  loading={loading}
+                  dispatch={dispatch}
+                />
+              )}
+              {step === 1 && (
+                <CardDataStep
+                  formik={formik}
+                  isCvcFocused={isCvcFocused}
+                  setIsCvcFocused={setIsCvcFocused}
+                  enforceText={enforceText}
+                  enforceNumber={enforceNumber}
+                  enforceDateExpiration={enforceDateExpiration}
+                />
+              )}
+              {step === 2 && (
+                <SummaryStep
+                  formik={formik}
+                  selectedProduct={selectedProduct}
+                  formatPrice={formatPrice}
+                />
+              )}
+            </Grid>
+            <Box display="flex" justifyContent="space-between">
+              {step > 0 && (
+                <Button
+                  type="button"
+                  variant="contained"
+                  color="inherit"
+                  sx={{ mr: 2 }}
+                  fullWidth={false}
+                  onClick={handleBack}
+                >
+                  Atrás
+                </Button>
+              )}
+              <Button
+                type="button"
+                variant="contained"
+                color={step === 2 ? "success" : "primary"}
+                fullWidth={step === 0}
+                onClick={async () => {
+                  if (step === 0) {
+                    formik.setTouched({
+                      name: true,
+                      address: true,
+                      email: true,
+                      phone: true,
+                      city: true,
+                      country: true,
+                    });
+                    const valid = await personalSchema.isValid(formik.values);
+                    if (valid) handleNext();
+                    else formik.validateForm();
+                  } else if (step === 1) {
+                    formik.setTouched({
+                      cardHolder: true,
+                      cardNumber: true,
+                      expiration: true,
+                      cvc: true,
+                    });
+                    const valid = await cardSchema.isValid(formik.values);
+                    if (valid) handleNext();
+                    else formik.validateForm();
+                  } else if (step === 2) {
+                    const { name, email, phone, address, city, country, cardHolder, cardNumber, expiration, cvc } = formik.values;
+                    const [exp_month, exp_year] = expiration.split("/");
+
+                    const payload: Transaction = {
+                      amount: Number(selectedProduct?.price ?? 0) * 100,
+                      delivery: {
+                        address,
+                        city,
+                        country,
+                        customer: {
+                          fullName: name,
+                          email,
+                          phone,
+                        },
+                        productId: selectedProduct?.id ?? 0,
+                      },
+                      card: {
+                        number: cardNumber,
+                        exp_month,
+                        exp_year,
+                        cvc,
+                        card_holder: cardHolder,
+                      },
+                    };
+
+                    dispatch(submitTransaction(payload));
+                  }
+                }}
+              >
+                {step === 0 ? "Siguiente" : step === 1 ? "Resumen" : "Confirmar"}
+              </Button>
+            </Box>
+          </form>
+          {transactionState.error && <p style={{ color: "red" }}>{transactionState.error}</p>}
+          {transactionState.success && <p style={{ color: "green" }}>¡Compra exitosa!</p>}
+        </>
+      )}
     </>
   );
 }
