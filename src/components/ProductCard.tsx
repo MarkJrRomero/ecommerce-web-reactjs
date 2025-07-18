@@ -10,8 +10,8 @@ export default function ProductCard({ product }: Props) {
     <Card sx={{ maxWidth: 300, margin: '1rem auto' }}>
       <CardMedia
         component="img"
-        height="140"
-        image={product.image}
+        height="250"
+        image={product.imageUrl ?? 'assets/images/product-placeholder.png'}
         alt={product.name}
       />
       <CardContent>

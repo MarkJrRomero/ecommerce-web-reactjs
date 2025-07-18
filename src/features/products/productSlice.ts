@@ -1,61 +1,46 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { fetchProducts } from './productsData';
 
 export type Product = {
-  id: string;
+  id: number;
   name: string;
-  price: number;
   description: string;
+  price: string;
   stock: number;
-  image: string;
+  imageUrl: string | null;
 };
 
-const initialState: Product[] = [
-  {
-    id: '1',
-    name: 'Taza Edición Especial',
-    price: 39000,
-    description: 'Taza conmemorativa edición limitada',
-    stock: 10,
-    image: 'https://picsum.photos/200/300',
-  },
-  {
-    id: '2',
-    name: 'Camiseta Blanca',
-    price: 59000,
-    description: 'Camiseta 100% algodón',
-    stock: 5,
-    image: 'https://picsum.photos/200/300',
-  },
-  {
-    id: '3',
-    name: 'Camiseta Negra',
-    price: 59000,
-    description: 'Camiseta 100% algodón',
-    stock: 5,
-    image: 'https://picsum.photos/200/300',
-  },
-  {
-    id: '4',
-    name: 'Camiseta Negra',
-    price: 59000,
-    description: 'Camiseta 100% algodón',
-    stock: 5,
-    image: 'https://picsum.photos/200/300',
-  },
-  {
-    id: '5',
-    name: 'Camiseta Negra',
-    price: 59000,
-    description: 'Camiseta 100% algodón',
-    stock: 5,
-    image: 'https://picsum.photos/200/300',
-  },
-];
+type ProductState = {
+  items: Product[];
+  loading: boolean;
+  error: string | null;
+};
+
+const initialState: ProductState = {
+  items: [],
+  loading: false,
+  error: null,
+};
 
 const productSlice = createSlice({
   name: 'products',
   initialState,
   reducers: {},
+  extraReducers(builder) {
+    builder
+      .addCase(fetchProducts.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchProducts.fulfilled, (state, action) => {
+        state.items = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchProducts.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+  },
 });
 
 export default productSlice.reducer;
