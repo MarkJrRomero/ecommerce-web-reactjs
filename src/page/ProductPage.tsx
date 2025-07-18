@@ -22,7 +22,7 @@ export default function ProductPage() {
         <CircularProgress sx={{ display: "block", mx: "auto", my: 3 }} />
       )}
       {error && <Alert severity="error">{error}</Alert>}
-      <Grid container spacing={2}>
+      <Grid container spacing={4} justifyContent="center">
         {items.map((product) => (
           <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
             <ProductCard key={product.id} product={product} />

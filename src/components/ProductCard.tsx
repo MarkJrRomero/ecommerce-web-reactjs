@@ -6,17 +6,23 @@ import {
   Button,
   Box,
   Chip,
+  Stack,
 } from "@mui/material";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2";
 import type { Product } from "../features/products/productSlice";
 import { formatPrice } from "../utils/utils";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "../redux/store";
+import { openModal } from "../features/ui/uiSlice";
 
 type Props = {
   product: Product;
 };
 
 export default function ProductCard({ product }: Props) {
+  const dispatch = useDispatch<AppDispatch>();
+
   return (
     <Card
       sx={{
@@ -55,22 +61,35 @@ export default function ProductCard({ product }: Props) {
         <Typography variant="h6" fontWeight={700} gutterBottom>
           {product.name}
         </Typography>
-        
+
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
           {product.description}
         </Typography>
 
-        <Typography variant="h5" color="primary" fontWeight={700} sx={{ mb: 1 }}>
-          {formatPrice(Number(product.price))}
-        </Typography>
+        <Stack
+          direction="column"
+          spacing={1}
+          justifyContent="center"
+          alignItems="center"
+          sx={{ mb: 1 }}
+        >
+          <Typography
+            variant="h5"
+            color="success"
+            fontWeight={700}
+            sx={{ mb: 1 }}
+          >
+            {formatPrice(Number(product.price))}
+          </Typography>
 
-        <Chip
-          icon={<Inventory2OutlinedIcon fontSize="small" />}
-          label={`${product.stock}`}
-          size="small"
-          color={product.stock > 0 ? "success" : "default"}
-          sx={{ fontWeight: 800, padding: 1, fontSize: 16 }}
-        />
+          <Chip
+            icon={<Inventory2OutlinedIcon fontSize="small" />}
+            label={`${product.stock}`}
+            size="small"
+            color={product.stock > 0 ? "success" : "default"}
+            sx={{ fontWeight: 800, padding: 1, fontSize: 16 }}
+          />
+        </Stack>
 
         <Button
           fullWidth
@@ -86,6 +105,7 @@ export default function ProductCard({ product }: Props) {
             width: "80%",
           }}
           disabled={product.stock === 0}
+          onClick={() => dispatch(openModal(product))}
         >
           {product.stock > 0 ? "Comprar" : "Agotado"}
         </Button>
