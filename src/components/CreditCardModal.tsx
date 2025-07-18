@@ -1,7 +1,6 @@
 import {
     Modal,
     Box,
-    Typography,
     IconButton
   } from '@mui/material';
   import CloseIcon from '@mui/icons-material/Close';
@@ -18,7 +17,7 @@ import {
     left: '50%',
     transform: 'translate(-50%, -50%)',
     width: '90%',
-    maxWidth: 400,
+    maxWidth: 600,
     bgcolor: 'background.paper',
     borderRadius: 2,
     boxShadow: 24,
@@ -29,8 +28,7 @@ import {
     return (
       <Modal open={open} onClose={onClose}>
         <Box sx={style}>
-          <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Typography variant="h6">Datos de Pago</Typography>
+          <Box display="flex" justifyContent="flex-end" alignItems="center">
             <IconButton onClick={onClose}><CloseIcon /></IconButton>
           </Box>
           <CreditCardForm onClose={onClose} />
