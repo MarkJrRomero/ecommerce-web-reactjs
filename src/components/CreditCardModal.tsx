@@ -1,11 +1,12 @@
 import {
     Modal,
     Box,
-    Typography,
     IconButton
   } from '@mui/material';
   import CloseIcon from '@mui/icons-material/Close';
   import CreditCardForm from './CreditCardForm';
+  import { useSelector } from 'react-redux';
+  import type { RootState } from '../redux/store';
   
   type Props = {
     open: boolean;
@@ -17,21 +18,31 @@ import {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: '90%',
-    maxWidth: 400,
+    width: { xs: '80%', sm: '90%', md: 500, lg: 600 },
+    maxWidth: 600,
+    maxHeight: { xs: '90vh', sm: '90vh', md: '90vh' },
     bgcolor: 'background.paper',
     borderRadius: 2,
     boxShadow: 24,
-    p: 3,
+    p: { xs: 2, sm: 2, md: 3 },
+    overflowY: 'auto',
   };
   
   export default function CreditCardModal({ open, onClose }: Props) {
+    const transactionLoading = useSelector((state: RootState) => state.transaction.loading);
     return (
-      <Modal open={open} onClose={onClose}>
+      <Modal
+        open={open}
+        onClose={transactionLoading ? undefined : onClose}
+        disableEscapeKeyDown={transactionLoading}
+      >
         <Box sx={style}>
-          <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Typography variant="h6">Datos de Pago</Typography>
-            <IconButton onClick={onClose}><CloseIcon /></IconButton>
+          <Box display="flex" justifyContent="flex-end" alignItems="center">
+            {!transactionLoading && (
+              <IconButton onClick={onClose} disabled={transactionLoading}>
+                <CloseIcon />
+              </IconButton>
+            )}
           </Box>
           <CreditCardForm onClose={onClose} />
         </Box>

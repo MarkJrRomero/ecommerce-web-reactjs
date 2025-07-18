@@ -1,0 +1,51 @@
+.card-animation-container {
+    position: relative;
+    width: 120px;
+    height: 180px;
+  }
+  
+  .dataphone {
+    position: absolute;
+    top: 40px;
+    left: 30px;
+    width: 60px;
+    height: 100px;
+    background: #222;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px #0004;
+    z-index: 1;
+  }
+  .dataphone .screen {
+    width: 40px;
+    height: 20px;
+    background: #0f0;
+    margin: 10px auto 0 auto;
+    border-radius: 4px;
+  }
+  .dataphone .slot {
+    width: 40px;
+    height: 8px;
+    background: #444;
+    margin: 10px auto 0 auto;
+    border-radius: 2px;
+  }
+  
+  .credit-card {
+    position: absolute;
+    left: 10px;
+    top: 0;
+    width: 100px;
+    height: 60px;
+    background: linear-gradient(135deg, #1976d2 60%, #2061a1 90%);
+    border-radius: 10px;
+    box-shadow: 0 2px 8px #0003;
+    animation: card-slide 2s infinite;
+    z-index: 2;
+  }
+  
+  @keyframes card-slide {
+    0% { top: 0; }
+    40% { top: 60px; }
+    60% { top: 60px; }
+    100% { top: 0; }
+  } 
