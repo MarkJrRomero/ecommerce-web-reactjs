@@ -12,10 +12,21 @@ import {
   StepLabel,
   Autocomplete,
   CircularProgress,
+  Paper,
+  Divider,
+  Avatar,
 } from "@mui/material";
+import PersonIcon from "@mui/icons-material/Person";
+import EmailIcon from "@mui/icons-material/Email";
+import PhoneIcon from "@mui/icons-material/Phone";
+import HomeIcon from "@mui/icons-material/Home";
+import PublicIcon from "@mui/icons-material/Public";
+import LocationCityIcon from "@mui/icons-material/LocationCity";
+import CreditCardIcon from "@mui/icons-material/CreditCard";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../redux/store";
-import { formatPrice } from "../utils/utils";
+import { enforceDateExpiration, enforceNumber, enforceText, formatPrice } from "../utils/utils";
 import CreditCardVisual from "./CreditCardVisual";
 import { useDispatch } from "react-redux";
 import {
@@ -23,12 +34,15 @@ import {
   fetchCities,
   clearCities,
 } from "../features/location/locationSlice";
+import PersonalDataStep from "./form-steps/PersonalDataStep";
+import CardDataStep from "./form-steps/CardDataStep";
+import SummaryStep from "./form-steps/SummaryStep";
 
 type Props = {
   onClose: () => void;
 };
 
-const steps = ["Datos personales", "Datos de tarjeta"];
+const steps = ["Datos personales", "Datos de tarjeta", "Resumen"];
 
 const personalSchema = Yup.object({
   name: Yup.string().required("El nombre es requerido"),
@@ -40,10 +54,12 @@ const personalSchema = Yup.object({
 });
 
 const cardSchema = Yup.object({
-  cardHolder: Yup.string().required(
-    "El nombre del titular de la tarjeta es requerido"
-  ),
+  cardHolder: Yup.string()
+    .matches(/^[A-Z\s]+$/, "El nombre debe contener solo letras")
+    .min(5, "El nombre debe tener al menos 5 letras")
+    .required("El nombre del titular de la tarjeta es requerido"),
   cardNumber: Yup.string()
+    .matches(/^[0-9\s]+$/, "Debe contener solo números")
     .matches(/^\d{16}$/, "Debe tener 16 dígitos")
     .required("La tarjeta es requerida"),
   expiration: Yup.string()
@@ -83,7 +99,8 @@ export default function CreditCardForm({ onClose }: Props) {
       expiration: "",
       cvc: "",
     },
-    validationSchema: step === 0 ? personalSchema : cardSchema,
+    validationSchema:
+      step === 0 ? personalSchema : step === 1 ? cardSchema : Yup.object({}),
     validateOnChange: false,
     validateOnBlur: true,
     onSubmit: (values) => {
@@ -99,15 +116,11 @@ export default function CreditCardForm({ onClose }: Props) {
             });
             formik.setErrors(errors);
           });
-      } else {
-        // Validar datos de tarjeta y enviar
+      } else if (step === 1) {
+        // Validar datos de tarjeta y pasar al siguiente paso
         cardSchema
           .validate(values, { abortEarly: false })
-          .then(() => {
-            // Aquí podrías enviar los datos completos
-            console.log("Formulario enviado:", values);
-            onClose();
-          })
+          .then(() => setStep(2))
           .catch((err) => {
             const errors: Record<string, string> = {};
             err.inner.forEach((e: any) => {
@@ -115,9 +128,47 @@ export default function CreditCardForm({ onClose }: Props) {
             });
             formik.setErrors(errors);
           });
+      } else if (step === 2) {
+        // Acción final: enviar datos
+        console.log("Formulario enviado:", values);
+        onClose();
       }
     },
   });
+
+  const handleNext = () => {
+    if (step === 0) {
+      personalSchema
+        .validate(formik.values, { abortEarly: false })
+        .then(() => setStep(1))
+        .catch((err) => {
+          const errors: Record<string, string> = {};
+          err.inner.forEach((e: any) => {
+            errors[e.path] = e.message;
+          });
+          formik.setErrors(errors);
+        });
+    } else if (step === 1) {
+      cardSchema
+        .validate(formik.values, { abortEarly: false })
+        .then(() => setStep(2))
+        .catch((err) => {
+          const errors: Record<string, string> = {};
+          err.inner.forEach((e: any) => {
+            errors[e.path] = e.message;
+          });
+          formik.setErrors(errors);
+        });
+    } else if (step === 2) {
+      // Acción final: enviar datos
+      console.log("Formulario enviado:", formik.values);
+      onClose();
+    }
+  };
+
+  const handleBack = () => {
+    if (step > 0) setStep(step - 1);
+  };
 
   return (
     <>
@@ -128,199 +179,44 @@ export default function CreditCardForm({ onClose }: Props) {
           </Step>
         ))}
       </Stepper>
-      <form onSubmit={formik.handleSubmit}>
+      <form autoComplete="off">
         <Grid container spacing={2} sx={{ mb: 2 }}>
           {step === 0 && (
-            <>
-              {selectedProduct && (
-                <Grid size={{ xs: 12 }}>
-                  <Typography variant="h6" sx={{ mb: 2, mt: 2 }}>
-                    INFORMACIÓN DEL PRODUCTO
-                  </Typography>
-                  <Typography variant="body1" sx={{ mb: 2, fontWeight: 800 }}>
-                    {selectedProduct.name} - {formatPrice(Number(selectedProduct.price))}
-                  </Typography>
-                </Grid>
-              )}
-              <Grid size={{ xs: 12 }}>
-                <TextField
-                  fullWidth
-                  label="Nombre Completo"
-                  {...formik.getFieldProps("name")}
-                  error={formik.touched.name && !!formik.errors.name}
-                  helperText={formik.touched.name && formik.errors.name}
-                />
-              </Grid>
-              <Grid size={{ xs: 6 }}>
-                <Autocomplete
-                  options={countries}
-                  loading={loading}
-                  value={formik.values.country}
-                  onChange={(_, value) => {
-                    formik.setFieldValue("country", value);
-                    formik.setFieldValue("city", "");
-                    if (value) {
-                      dispatch(fetchCities(value));
-                    } else {
-                      dispatch(clearCities());
-                    }
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="País"
-                      error={formik.touched.country && !!formik.errors.country}
-                      helperText={
-                        formik.touched.country && formik.errors.country
-                      }
-                      InputProps={{
-                        ...params.InputProps,
-                        endAdornment: (
-                          <>
-                            {loading ? (
-                              <CircularProgress color="inherit" size={20} />
-                            ) : null}
-                            {params.InputProps.endAdornment}
-                          </>
-                        ),
-                      }}
-                    />
-                  )}
-                />
-              </Grid>
-              <Grid size={{ xs: 6 }}>
-                <Autocomplete
-                  options={cities}
-                  loading={loading}
-                  value={formik.values.city}
-                  onChange={(_, value) => formik.setFieldValue("city", value)}
-                  disabled={!formik.values.country}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Ciudad"
-                      error={formik.touched.city && !!formik.errors.city}
-                      helperText={formik.touched.city && formik.errors.city}
-                      InputProps={{
-                        ...params.InputProps,
-                        endAdornment: (
-                          <>
-                            {loading ? (
-                              <CircularProgress color="inherit" size={20} />
-                            ) : null}
-                            {params.InputProps.endAdornment}
-                          </>
-                        ),
-                      }}
-                    />
-                  )}
-                />
-              </Grid>
-              <Grid size={{ xs: 12 }}>
-                <TextField
-                  fullWidth
-                  label="Dirección de entrega"
-                  {...formik.getFieldProps("address")}
-                  error={formik.touched.address && !!formik.errors.address}
-                  helperText={formik.touched.address && formik.errors.address}
-                />
-              </Grid>
-              <Grid size={{ xs: 6 }}>
-                <TextField
-                  fullWidth
-                  label="Correo electrónico"
-                  {...formik.getFieldProps("email")}
-                  error={formik.touched.email && !!formik.errors.email}
-                  helperText={formik.touched.email && formik.errors.email}
-                />
-              </Grid>
-              <Grid size={{ xs: 6 }}>
-                <TextField
-                  fullWidth
-                  label="Teléfono de contacto"
-                  {...formik.getFieldProps("phone")}
-                  error={formik.touched.phone && !!formik.errors.phone}
-                  helperText={formik.touched.phone && formik.errors.phone}
-                />
-              </Grid>
-            </>
+            <PersonalDataStep
+              formik={formik}
+              countries={countries}
+              cities={cities}
+              loading={loading}
+              dispatch={dispatch}
+            />
           )}
           {step === 1 && (
-            <>
-              <Grid size={{ xs: 12 }}>
-                <CreditCardVisual
-                  cardNumber={formik.values.cardNumber}
-                  cardHolder={formik.values.cardHolder}
-                  expiration={formik.values.expiration}
-                  cvc={formik.values.cvc}
-                  isFlipped={isCvcFocused}
-                />
-              </Grid>
-              <Grid size={{ xs: 12 }}>
-                <TextField
-                  fullWidth
-                  label="Nombre del titular de la tarjeta"
-                  {...formik.getFieldProps("cardHolder")}
-                  error={
-                    formik.touched.cardHolder && !!formik.errors.cardHolder
-                  }
-                  helperText={
-                    formik.touched.cardHolder && formik.errors.cardHolder
-                  }
-                />
-              </Grid>
-              <Grid size={{ xs: 12 }}>
-                <TextField
-                  fullWidth
-                  label="Número de Tarjeta"
-                  inputProps={{
-                    maxLength: 16,
-                  }}
-                  {...formik.getFieldProps("cardNumber")}
-                  error={
-                    formik.touched.cardNumber && !!formik.errors.cardNumber
-                  }
-                  helperText={
-                    formik.touched.cardNumber && formik.errors.cardNumber
-                  }
-                />
-              </Grid>
-              <Grid size={{ xs: 6 }}>
-                <TextField
-                  fullWidth
-                  label="Expiración (MM/YY)"
-                  {...formik.getFieldProps("expiration")}
-                  error={
-                    formik.touched.expiration && !!formik.errors.expiration
-                  }
-                  helperText={
-                    formik.touched.expiration && formik.errors.expiration
-                  }
-                />
-              </Grid>
-              <Grid size={{ xs: 6 }}>
-                <TextField
-                  fullWidth
-                  label="CVC"
-                  {...formik.getFieldProps("cvc")}
-                  error={formik.touched.cvc && !!formik.errors.cvc}
-                  helperText={formik.touched.cvc && formik.errors.cvc}
-                  onFocus={() => setIsCvcFocused(true)}
-                  onBlur={() => setIsCvcFocused(false)}
-                />
-              </Grid>
-            </>
+            <CardDataStep
+              formik={formik}
+              isCvcFocused={isCvcFocused}
+              setIsCvcFocused={setIsCvcFocused}
+              enforceText={enforceText}
+              enforceNumber={enforceNumber}
+              enforceDateExpiration={enforceDateExpiration}
+            />
+          )}
+          {step === 2 && (
+            <SummaryStep
+              formik={formik}
+              selectedProduct={selectedProduct}
+              formatPrice={formatPrice}
+            />
           )}
         </Grid>
         <Box display="flex" justifyContent="space-between">
-          {step === 1 && (
+          {step > 0 && (
             <Button
               type="button"
               variant="contained"
               color="inherit"
               sx={{ mr: 2 }}
               fullWidth={false}
-              onClick={() => setStep(0)}
+              onClick={handleBack}
             >
               Atrás
             </Button>
@@ -328,24 +224,37 @@ export default function CreditCardForm({ onClose }: Props) {
           <Button
             type="button"
             variant="contained"
+            color={step === 2 ? "success" : "primary"}
             fullWidth={step === 0}
-            onClick={() => {
+            onClick={async () => {
               if (step === 0) {
-                if (formik.isValid) {
-                  setStep(1);
-                } else {
-                  formik.validateForm();
-                }
-              } else {
-                if (formik.isValid) {
-                  formik.handleSubmit();
-                } else {
-                  formik.validateForm();
-                }
+                formik.setTouched({
+                  name: true,
+                  address: true,
+                  email: true,
+                  phone: true,
+                  city: true,
+                  country: true,
+                });
+                const valid = await personalSchema.isValid(formik.values);
+                if (valid) handleNext();
+                else formik.validateForm();
+              } else if (step === 1) {
+                formik.setTouched({
+                  cardHolder: true,
+                  cardNumber: true,
+                  expiration: true,
+                  cvc: true,
+                });
+                const valid = await cardSchema.isValid(formik.values);
+                if (valid) handleNext();
+                else formik.validateForm();
+              } else if (step === 2) {
+                handleNext();
               }
             }}
           >
-            {step === 0 ? "Siguiente" : "Pagar"}
+            {step === 0 ? "Siguiente" : step === 1 ? "Resumen" : "Confirmar"}
           </Button>
         </Box>
       </form>

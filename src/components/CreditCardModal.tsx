@@ -16,12 +16,14 @@ import {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: '90%',
+    width: { xs: '80%', sm: '90%', md: 500, lg: 600 },
     maxWidth: 600,
+    maxHeight: { xs: '90vh', sm: '90vh', md: '90vh' },
     bgcolor: 'background.paper',
     borderRadius: 2,
     boxShadow: 24,
-    p: 3,
+    p: { xs: 2, sm: 2, md: 3 },
+    overflowY: 'auto',
   };
   
   export default function CreditCardModal({ open, onClose }: Props) {

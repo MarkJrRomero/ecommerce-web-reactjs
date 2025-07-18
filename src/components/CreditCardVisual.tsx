@@ -104,7 +104,7 @@ export default function CreditCardVisual({
               <Box>
                 <Typography variant="caption">TITULAR</Typography>
                 <Typography variant="body2" fontWeight={500} sx={{ fontSize: isMobile ? "0.85rem" : "1rem" }}>
-                  {cardHolder || "NOMBRE Y APELLIDO"}
+                  {cardHolder.length > 16 ? cardHolder.slice(0, 16) + "..." : cardHolder || "NOMBRE Y APELLIDO"}
                 </Typography>
               </Box>
               <Box>
