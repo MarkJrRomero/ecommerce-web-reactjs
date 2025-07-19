@@ -157,7 +157,7 @@ export default function CreditCardForm() {
               <Alert
                 type="success"
                 title="¡Transacción exitosa!"
-                message="Tu compra se ha procesado correctamente. ¡Gracias por tu compra!, esta ventana se cerrará automáticamente en 10 segundos"
+                message="Tu compra se ha procesado correctamente. ¡Gracias por tu compra!, esta ventana se cerrará automáticamente en 10 segundos. (Via correo electrónico se te enviará un recibo de la compra)"
               />
             )}
             {transactionStatus === "DECLINED" && (
