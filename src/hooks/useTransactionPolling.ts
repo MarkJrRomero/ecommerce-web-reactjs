@@ -28,7 +28,7 @@ export const useTransactionPolling = () => {
         intervalRef.current = null;
       }
     };
-  }, [dispatch, transactionResult?.uuid, transactionResult?.status]);
+  }, [dispatch, transactionResult?.id, transactionResult?.status]);
 
   // Detenemos el polling cuando la transacción se completa (SUCCESS o DECLINED)
   useEffect(() => {
