@@ -161,10 +161,11 @@ El proyecto incluye un sistema completo de tests unitarios implementado con Jest
 
 ### Tests Implementados
 
-- ✅ **Tests de Redux Slices**: Estados y acciones de UI y productos
-- ✅ **Tests de Utilidades**: Funciones de formateo y validación
-- ✅ **Tests de Componentes**: Renderizado y interacciones
-- ✅ **Tests de Hooks**: Lógica de polling de transacciones
+- ✅ **Tests de Redux Slices**: Estados y acciones de UI (4/4 tests pasando)
+- ✅ **Tests de Hooks**: Verificación de existencia de archivos (1/1 test pasando)
+- ✅ **Tests de Utilidades**: Funciones de formateo y validación (3/3 tests pasando)
+- ✅ **Tests de Componentes**: Renderizado e interacciones (3/3 tests pasando)
+- ✅ **Tests de Productos**: Verificación de existencia de archivos (1/1 test pasando)
 
 ### Ejecutar Tests
 
