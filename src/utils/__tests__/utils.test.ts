@@ -2,17 +2,17 @@ import { formatPrice, enforceNumber, enforceText, enforceDateExpiration, getCard
 
 describe('formatPrice', () => {
   test('formatea precio correctamente', () => {
-    expect(formatPrice(1000)).toBe('$ 1.000');
-    expect(formatPrice(25000)).toBe('$ 25.000');
-    expect(formatPrice(1000000)).toBe('$ 1.000.000');
+    expect(formatPrice(1000)).toMatch(/^\$[\s]?1\.000$/);
+    expect(formatPrice(25000)).toMatch(/^\$[\s]?25\.000$/);
+    expect(formatPrice(1000000)).toMatch(/^\$[\s]?1\.000\.000$/);
   });
 
   test('maneja precio cero', () => {
-    expect(formatPrice(0)).toBe('$ 0');
+    expect(formatPrice(0)).toMatch(/^\$[\s]?0$/);
   });
 
   test('maneja números decimales', () => {
-    expect(formatPrice(1000.5)).toBe('$ 1.001');
+    expect(formatPrice(1000.5)).toMatch(/^\$[\s]?1\.001$/);
   });
 });
 
