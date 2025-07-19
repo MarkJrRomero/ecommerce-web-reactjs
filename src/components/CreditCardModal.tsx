@@ -45,7 +45,7 @@ import {
               </IconButton>
             )}
           </Box>
-          <CreditCardForm onCloseModal={onClose} />
+          <CreditCardForm />
         </Box>
       </Modal>
     );

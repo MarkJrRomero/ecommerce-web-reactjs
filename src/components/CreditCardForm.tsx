@@ -22,10 +22,6 @@ import CardProcessingAnimation from "./CardProcessingAnimation";
 import Alert from "./Alert";
 import { useTransactionPolling } from "../hooks/useTransactionPolling";
 
-type Props = {
-  onCloseModal: () => void;
-};
-
 const steps = ["Datos personales", "Datos de tarjeta", "Resumen"];
 
 const personalSchema = Yup.object({
@@ -54,7 +50,7 @@ const cardSchema = Yup.object({
     .required("El código de seguridad es requerido"),
 });
 
-export default function CreditCardForm({ onCloseModal }: Props) {
+export default function CreditCardForm() {
   const dispatch = useDispatch<AppDispatch>();
   const { countries, cities, loading } = useSelector(
     (state: RootState) => state.location
@@ -122,13 +118,6 @@ export default function CreditCardForm({ onCloseModal }: Props) {
 
   const handleBack = () => {
     if (step > 0) setStep(step - 1);
-  };
-
-  const getTransactionResult = (status: string) => {
-    if (status === "PENDING") {
-      return true;
-    }
-    return false;
   };
 
   return (

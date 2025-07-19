@@ -1,4 +1,3 @@
-import React from 'react';
 import { Alert as MuiAlert, AlertTitle, Box, IconButton } from '@mui/material';
 import { Close as CloseIcon, Error as ErrorIcon, CheckCircle as SuccessIcon, Warning as WarningIcon, Info as InfoIcon } from '@mui/icons-material';
 
