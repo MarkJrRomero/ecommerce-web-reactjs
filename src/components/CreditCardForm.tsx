@@ -21,6 +21,7 @@ import type { Transaction } from "../features/transaction/transactionSlice";
 import CardProcessingAnimation from "./CardProcessingAnimation";
 import Alert from "./Alert";
 import { useTransactionPolling } from "../hooks/useTransactionPolling";
+import { updateFormData, setCurrentStep, resetForm } from "../features/form/formSlice";
 
 const steps = ["Datos personales", "Datos de tarjeta", "Resumen"];
 
@@ -58,41 +59,30 @@ export default function CreditCardForm() {
   const transactionState = useSelector((state: RootState) => state.transaction);
   
   // Hook para manejar el polling de la transacción
-  const { isPolling, transactionStatus } = useTransactionPolling();
+  const { transactionStatus } = useTransactionPolling();
 
   useEffect(() => {
     dispatch(fetchCountries());
   }, [dispatch]);
 
-  const [step, setStep] = useState(0);
+  const formData = useSelector((state: RootState) => state.form.data);
+  const currentStep = useSelector((state: RootState) => state.form.currentStep);
   const selectedProduct = useSelector(
     (state: RootState) => state.ui.selectedProduct
   );
   const [isCvcFocused, setIsCvcFocused] = useState(false);
 
   const formik = useFormik({
-    initialValues: {
-      name: "",
-      address: "",
-      email: "",
-      phone: "",
-      city: "",
-      country: "",
-      cardHolder: "",
-      cardNumber: "",
-      expiration: "",
-      cvc: "",
-    },
+    initialValues: formData,
     validationSchema:
-      step === 0 ? personalSchema : step === 1 ? cardSchema : Yup.object({}),
+      currentStep === 0 ? personalSchema : currentStep === 1 ? cardSchema : Yup.object({}),
     validateOnChange: false,
     validateOnBlur: true,
     onSubmit: (values) => {
-      if (step === 0) {
-        // Validar datos personales y pasar al siguiente paso
+      if (currentStep === 0) {
         personalSchema
           .validate(values, { abortEarly: false })
-          .then(() => setStep(1))
+          .then(() => dispatch(setCurrentStep(1)))
           .catch((err) => {
             const errors: Record<string, string> = {};
             err.inner.forEach((e: any) => {
@@ -100,11 +90,10 @@ export default function CreditCardForm() {
             });
             formik.setErrors(errors);
           });
-      } else if (step === 1) {
-        // Validar datos de tarjeta y pasar al siguiente paso
+      } else if (currentStep === 1) {
         cardSchema
           .validate(values, { abortEarly: false })
-          .then(() => setStep(2))
+          .then(() => dispatch(setCurrentStep(2)))
           .catch((err) => {
             const errors: Record<string, string> = {};
             err.inner.forEach((e: any) => {
@@ -117,8 +106,20 @@ export default function CreditCardForm() {
   });
 
   const handleBack = () => {
-    if (step > 0) setStep(step - 1);
+    if (currentStep > 0) dispatch(setCurrentStep(currentStep - 1));
   };
+
+  useEffect(() => {
+    dispatch(updateFormData(formik.values));
+  }, [formik.values, dispatch]);
+
+  useEffect(() => {
+    if (transactionStatus === "APPROVED" || transactionStatus === "DECLINED") {
+      setTimeout(() => {
+        dispatch(resetForm());
+      }, 10000);
+    }
+  }, [transactionStatus, dispatch]);
 
   return (
     <>
@@ -129,7 +130,7 @@ export default function CreditCardForm() {
       ) : (
         <>
           {!transactionStatus && (
-            <Stepper activeStep={step} alternativeLabel sx={{ mb: 2 }}>
+            <Stepper activeStep={currentStep} alternativeLabel sx={{ mb: 2 }}>
               {steps.map((label) => (
                 <Step key={label}>
                   <StepLabel>{label}</StepLabel>
@@ -149,14 +150,14 @@ export default function CreditCardForm() {
               <Alert
                 type="warning"
                 title="Transacción en proceso"
-                message={`Tu compra se está procesando. Verificando estado cada 5 segundos... ${isPolling ? '🔄' : ''}`}
+                message={`Tu compra se está procesando. Esto puede tardar un minuto o dos...`}
               />
             )}
             {transactionStatus === "APPROVED" && (
               <Alert
                 type="success"
                 title="¡Transacción exitosa!"
-                message="Tu compra se ha procesado correctamente. ¡Gracias por tu compra!, esta ventana se cerrará automáticamente en 10 segundos"
+                message="Tu compra se ha procesado correctamente. ¡Gracias por tu compra!, esta ventana se cerrará automáticamente en 10 segundos. (Via correo electrónico se te enviará un recibo de la compra)"
               />
             )}
             {transactionStatus === "DECLINED" && (
@@ -168,7 +169,7 @@ export default function CreditCardForm() {
             )}
           <form>
             <Grid container spacing={2} sx={{ mb: 2 }}>
-              {step === 0 && (
+              {currentStep === 0 && (
                 <PersonalDataStep
                   formik={formik}
                   countries={countries}
@@ -177,7 +178,7 @@ export default function CreditCardForm() {
                   dispatch={dispatch}
                 />
               )}
-              {step === 1 && (
+              {currentStep === 1 && (
                 <CardDataStep
                   formik={formik}
                   isCvcFocused={isCvcFocused}
@@ -187,7 +188,7 @@ export default function CreditCardForm() {
                   enforceDateExpiration={enforceDateExpiration}
                 />
               )}
-              {step === 2 && (
+              {currentStep === 2 && (
                 <SummaryStep
                   formik={formik as any}
                   selectedProduct={selectedProduct ?? {
@@ -203,7 +204,7 @@ export default function CreditCardForm() {
               )}
             </Grid>
                           <Box display="flex" justifyContent="space-between">
-                {step > 0 && !transactionStatus && (
+                {currentStep > 0 && !transactionStatus && (
                   <Button
                     type="button"
                     variant="contained"
@@ -219,10 +220,10 @@ export default function CreditCardForm() {
                 <Button
                   type="button"
                   variant="contained"
-                  color={step === 2 ? "success" : "primary"}
-                  fullWidth={step === 0}
+                  color={currentStep === 2 ? "success" : "primary"}
+                  fullWidth={currentStep === 0}
                   onClick={async () => {
-                    if (step === 0) {
+                    if (currentStep === 0) {
                       formik.setTouched({
                         name: true,
                         address: true,
@@ -232,9 +233,9 @@ export default function CreditCardForm() {
                         country: true,
                       });
                       const valid = await personalSchema.isValid(formik.values);
-                      if (valid) setStep(1);
+                      if (valid) dispatch(setCurrentStep(1));
                       else formik.validateForm();
-                    } else if (step === 1) {
+                    } else if (currentStep === 1) {
                       formik.setTouched({
                         cardHolder: true,
                         cardNumber: true,
@@ -242,9 +243,9 @@ export default function CreditCardForm() {
                         cvc: true,
                       });
                       const valid = await cardSchema.isValid(formik.values);
-                      if (valid) setStep(2);
+                      if (valid) dispatch(setCurrentStep(2));
                       else formik.validateForm();
-                    } else if (step === 2) {
+                    } else if (currentStep === 2) {
                       const {
                         name,
                         email,
@@ -285,9 +286,9 @@ export default function CreditCardForm() {
                     }
                   }}
                 >
-                  {step === 0
+                  {currentStep === 0
                     ? "Siguiente"
-                    : step === 1
+                    : currentStep === 1
                     ? "Resumen"
                     : "Confirmar"}
                 </Button>
