@@ -6,11 +6,24 @@ import HomeIcon from "@mui/icons-material/Home";
 import PublicIcon from "@mui/icons-material/Public";
 import LocationCityIcon from "@mui/icons-material/LocationCity";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import type { FormikProps } from "formik";
+import type { Product } from "../../features/products/productSlice";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { useSelector } from "react-redux";
+import type { RootState } from "../../redux/store";
+import CancelIcon from '@mui/icons-material/Cancel';
+
+interface FormValues {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  country: string;
+  city: string;
+}
 
 interface Props {
-  formik: FormikProps<any> & {
+  formik: FormikProps<FormValues> & {
     values: {
       name: string;
       email: string;
@@ -24,11 +37,12 @@ interface Props {
       cvc: string;
     };
   };
-  selectedProduct: any;
+  selectedProduct: Product;
   formatPrice: (n: number) => string;
 }
 
 export default function SummaryStep({ formik, selectedProduct, formatPrice }: Props) {
+  const transactionState = useSelector((state: RootState) => state.transaction);
   return (
     <Box
       sx={{
@@ -59,7 +73,8 @@ export default function SummaryStep({ formik, selectedProduct, formatPrice }: Pr
             mb: 2,
           }}
         >
-          <CheckCircleIcon color="success" sx={{ fontSize: 48, mb: 1 }} />
+          {transactionState.transactionResult?.status === "APPROVED" && <CheckCircleIcon sx={{ fontSize: 48, color: "success.main" }} />}
+          {transactionState.transactionResult?.status === "DECLINED" && <CancelIcon sx={{ fontSize: 48, color: "error.main" }} />}
           <Typography
             variant="h5"
             sx={{
