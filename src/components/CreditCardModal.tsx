@@ -30,21 +30,22 @@ import {
   
   export default function CreditCardModal({ open, onClose }: Props) {
     const transactionLoading = useSelector((state: RootState) => state.transaction.loading);
+    const transactionSuccess = useSelector((state: RootState) => state.transaction.success);
     return (
       <Modal
         open={open}
-        onClose={transactionLoading ? undefined : onClose}
+        onClose={(transactionLoading || transactionSuccess) ? undefined : onClose}
         disableEscapeKeyDown={transactionLoading}
       >
         <Box sx={style}>
           <Box display="flex" justifyContent="flex-end" alignItems="center">
-            {!transactionLoading && (
+            {!transactionLoading && !transactionSuccess && (
               <IconButton onClick={onClose} disabled={transactionLoading}>
                 <CloseIcon />
               </IconButton>
             )}
           </Box>
-          <CreditCardForm onClose={onClose} />
+          <CreditCardForm onCloseModal={onClose} />
         </Box>
       </Modal>
     );

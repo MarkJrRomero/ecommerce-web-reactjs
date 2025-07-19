@@ -1,29 +1,29 @@
 import { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import {
-  Button,
-  Grid,
-  Box,
-  Stepper,
-  Step,
-  StepLabel,
-} from "@mui/material";
+import { Button, Grid, Box, Stepper, Step, StepLabel } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
 import type { AppDispatch, RootState } from "../redux/store";
-import { enforceDateExpiration, enforceNumber, enforceText, formatPrice, getCardType } from "../utils/utils";
 import {
-  fetchCountries,
-} from "../features/location/locationSlice";
+  enforceDateExpiration,
+  enforceNumber,
+  enforceText,
+  formatPrice,
+  getCardType,
+} from "../utils/utils";
+import { fetchCountries } from "../features/location/locationSlice";
 import PersonalDataStep from "./form-steps/PersonalDataStep";
 import CardDataStep from "./form-steps/CardDataStep";
 import SummaryStep from "./form-steps/SummaryStep";
 import { submitTransaction } from "../features/order/transactionData";
+import { clearError } from "../features/order/transactionSlice";
 import type { Transaction } from "../features/order/transactionSlice";
 import CardProcessingAnimation from "./CardProcessingAnimation";
+import Alert from "./Alert";
+import { useTransactionPolling } from "../hooks/useTransactionPolling";
 
 type Props = {
-  onClose: () => void;
+  onCloseModal: () => void;
 };
 
 const steps = ["Datos personales", "Datos de tarjeta", "Resumen"];
@@ -54,12 +54,15 @@ const cardSchema = Yup.object({
     .required("El código de seguridad es requerido"),
 });
 
-export default function CreditCardForm({ onClose }: Props) {
+export default function CreditCardForm({ onCloseModal }: Props) {
   const dispatch = useDispatch<AppDispatch>();
   const { countries, cities, loading } = useSelector(
     (state: RootState) => state.location
   );
   const transactionState = useSelector((state: RootState) => state.transaction);
+  
+  // Hook para manejar el polling de la transacción
+  const { isPolling, transactionStatus } = useTransactionPolling();
 
   useEffect(() => {
     dispatch(fetchCountries());
@@ -113,62 +116,68 @@ export default function CreditCardForm({ onClose }: Props) {
             });
             formik.setErrors(errors);
           });
-      } else if (step === 2) {
-        // Acción final: enviar datos
-        console.log("Formulario enviado:", values);
-        onClose();
       }
     },
   });
-
-  const handleNext = () => {
-    if (step === 0) {
-      personalSchema
-        .validate(formik.values, { abortEarly: false })
-        .then(() => setStep(1))
-        .catch((err) => {
-          const errors: Record<string, string> = {};
-          err.inner.forEach((e: any) => {
-            errors[e.path] = e.message;
-          });
-          formik.setErrors(errors);
-        });
-    } else if (step === 1) {
-      cardSchema
-        .validate(formik.values, { abortEarly: false })
-        .then(() => setStep(2))
-        .catch((err) => {
-          const errors: Record<string, string> = {};
-          err.inner.forEach((e: any) => {
-            errors[e.path] = e.message;
-          });
-          formik.setErrors(errors);
-        });
-    } else if (step === 2) {
-      // Acción final: enviar datos
-      console.log("Formulario enviado:", formik.values);
-      onClose();
-    }
-  };
 
   const handleBack = () => {
     if (step > 0) setStep(step - 1);
   };
 
+  const getTransactionResult = (status: string) => {
+    if (status === "PENDING") {
+      return true;
+    }
+    return false;
+  };
+
   return (
     <>
       {transactionState.loading ? (
-        <CardProcessingAnimation brand={getCardType(formik.values.cardNumber)} />
+        <CardProcessingAnimation
+          brand={getCardType(formik.values.cardNumber)}
+        />
       ) : (
         <>
-          <Stepper activeStep={step} alternativeLabel sx={{ mb: 2 }}>
-            {steps.map((label) => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-          <form autoComplete="off">
+          {!transactionStatus && (
+            <Stepper activeStep={step} alternativeLabel sx={{ mb: 2 }}>
+              {steps.map((label) => (
+                <Step key={label}>
+                  <StepLabel>{label}</StepLabel>
+                </Step>
+              ))}
+            </Stepper>
+          )}
+                      {transactionState.error && (
+              <Alert
+                type="error"
+                title="Error en la transacción"
+                message="Ocurrió un error al procesar la transacción. Por favor, intenta nuevamente."
+                onClose={() => dispatch(clearError())}
+              />
+            )}
+            {transactionStatus === "PENDING" && (
+              <Alert
+                type="warning"
+                title="Transacción en proceso"
+                message={`Tu compra se está procesando. Verificando estado cada 5 segundos... ${isPolling ? '🔄' : ''}`}
+              />
+            )}
+            {transactionStatus === "SUCCESS" && (
+              <Alert
+                type="success"
+                title="¡Transacción exitosa!"
+                message="Tu compra se ha procesado correctamente. ¡Gracias por tu compra!"
+              />
+            )}
+            {transactionStatus === "DECLINED" && (
+              <Alert
+                type="error"
+                title="Transacción rechazada"
+                message="Tu compra fue rechazada. Por favor, verifica tus datos e intenta nuevamente."
+              />
+            )}
+          <form>
             <Grid container spacing={2} sx={{ mb: 2 }}>
               {step === 0 && (
                 <PersonalDataStep
@@ -191,89 +200,111 @@ export default function CreditCardForm({ onClose }: Props) {
               )}
               {step === 2 && (
                 <SummaryStep
-                  formik={formik}
-                  selectedProduct={selectedProduct}
+                  formik={formik as any}
+                  selectedProduct={selectedProduct ?? {
+                    id: 0,
+                    name: "",
+                    price: 0,
+                    description: "",
+                    imageUrl: "",
+                    stock: 0,
+                  }}
                   formatPrice={formatPrice}
                 />
               )}
             </Grid>
-            <Box display="flex" justifyContent="space-between">
-              {step > 0 && (
+                          <Box display="flex" justifyContent="space-between">
+                {step > 0 && !transactionStatus && (
+                  <Button
+                    type="button"
+                    variant="contained"
+                    color="inherit"
+                    sx={{ mr: 2 }}
+                    fullWidth={false}
+                    onClick={handleBack}
+                  >
+                    Atrás
+                  </Button>
+                )}
+                {!transactionStatus && (
                 <Button
                   type="button"
                   variant="contained"
-                  color="inherit"
-                  sx={{ mr: 2 }}
-                  fullWidth={false}
-                  onClick={handleBack}
-                >
-                  Atrás
-                </Button>
-              )}
-              <Button
-                type="button"
-                variant="contained"
-                color={step === 2 ? "success" : "primary"}
-                fullWidth={step === 0}
-                onClick={async () => {
-                  if (step === 0) {
-                    formik.setTouched({
-                      name: true,
-                      address: true,
-                      email: true,
-                      phone: true,
-                      city: true,
-                      country: true,
-                    });
-                    const valid = await personalSchema.isValid(formik.values);
-                    if (valid) handleNext();
-                    else formik.validateForm();
-                  } else if (step === 1) {
-                    formik.setTouched({
-                      cardHolder: true,
-                      cardNumber: true,
-                      expiration: true,
-                      cvc: true,
-                    });
-                    const valid = await cardSchema.isValid(formik.values);
-                    if (valid) handleNext();
-                    else formik.validateForm();
-                  } else if (step === 2) {
-                    const { name, email, phone, address, city, country, cardHolder, cardNumber, expiration, cvc } = formik.values;
-                    const [exp_month, exp_year] = expiration.split("/");
-
-                    const payload: Transaction = {
-                      amount: Number(selectedProduct?.price ?? 0) * 100,
-                      delivery: {
+                  color={step === 2 ? "success" : "primary"}
+                  fullWidth={step === 0}
+                  onClick={async () => {
+                    if (step === 0) {
+                      formik.setTouched({
+                        name: true,
+                        address: true,
+                        email: true,
+                        phone: true,
+                        city: true,
+                        country: true,
+                      });
+                      const valid = await personalSchema.isValid(formik.values);
+                      if (valid) setStep(1);
+                      else formik.validateForm();
+                    } else if (step === 1) {
+                      formik.setTouched({
+                        cardHolder: true,
+                        cardNumber: true,
+                        expiration: true,
+                        cvc: true,
+                      });
+                      const valid = await cardSchema.isValid(formik.values);
+                      if (valid) setStep(2);
+                      else formik.validateForm();
+                    } else if (step === 2) {
+                      const {
+                        name,
+                        email,
+                        phone,
                         address,
                         city,
                         country,
-                        customer: {
-                          fullName: name,
-                          email,
-                          phone,
-                        },
-                        productId: selectedProduct?.id ?? 0,
-                      },
-                      card: {
-                        number: cardNumber,
-                        exp_month,
-                        exp_year,
+                        cardHolder,
+                        cardNumber,
+                        expiration,
                         cvc,
-                        card_holder: cardHolder,
-                      },
-                    };
+                      } = formik.values;
+                      const [exp_month, exp_year] = expiration.split("/");
 
-                    dispatch(submitTransaction(payload));
-                  }
-                }}
-              >
-                {step === 0 ? "Siguiente" : step === 1 ? "Resumen" : "Confirmar"}
-              </Button>
+                      const payload: Transaction = {
+                        amount: Number(selectedProduct?.price ?? 0) * 100,
+                        delivery: {
+                          address,
+                          city,
+                          country,
+                          customer: {
+                            fullName: name,
+                            email,
+                            phone,
+                          },
+                          productId: selectedProduct?.id ?? 0,
+                        },
+                        card: {
+                          number: cardNumber,
+                          exp_month,
+                          exp_year,
+                          cvc,
+                          card_holder: cardHolder,
+                        },
+                      };
+
+                      dispatch(submitTransaction(payload));
+                    }
+                  }}
+                >
+                  {step === 0
+                    ? "Siguiente"
+                    : step === 1
+                    ? "Resumen"
+                    : "Confirmar"}
+                </Button>
+              )}
             </Box>
           </form>
-          {transactionState.error && <p style={{ color: "red" }}>{transactionState.error}</p>}
-          {transactionState.success && <p style={{ color: "green" }}>¡Compra exitosa!</p>}
         </>
       )}
     </>

@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { submitTransaction } from "./transactionData";
+import { submitTransaction, checkTransactionStatus } from "./transactionData";
 
 export interface Transaction {
   amount: number;
@@ -23,16 +23,23 @@ export interface Transaction {
   };
 }
 
+export interface TransactionResult {
+  id: string;
+  status: string;
+}
+
 interface TransactionState {
   loading: boolean;
   error: string | null;
   success: boolean;
+  transactionResult: TransactionResult | null;
 }
 
 const initialState: TransactionState = {
   loading: false,
   error: null,
   success: false,
+  transactionResult: null,
 };
 
 
@@ -45,6 +52,12 @@ const transactionSlice = createSlice({
       state.error = null;
       state.success = false;
     },
+    clearError: (state) => {
+      state.error = null;
+    },
+    clearSuccess: (state) => {
+      state.success = false;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -52,18 +65,32 @@ const transactionSlice = createSlice({
         state.loading = true;
         state.error = null;
         state.success = false;
+        state.transactionResult = null;
       })
-      .addCase(submitTransaction.fulfilled, (state) => {
+      .addCase(submitTransaction.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
+        state.transactionResult = action.payload;
       })
       .addCase(submitTransaction.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
         state.success = false;
+        state.transactionResult = null;
+      })
+      .addCase(checkTransactionStatus.fulfilled, (state, action) => {
+        state.transactionResult = action.payload;
+        if (action.payload.status === "SUCCESS" || action.payload.status === "DECLINED") {
+          state.success = action.payload.status === "SUCCESS";
+        }
+      })
+      .addCase(checkTransactionStatus.rejected, (state, action) => {
+        if (!state.transactionResult) {
+          state.error = action.payload as string;
+        }
       });
   },
 });
 
-export const { resetOrder } = transactionSlice.actions;
+export const { resetOrder, clearError, clearSuccess } = transactionSlice.actions;
 export default transactionSlice.reducer;
