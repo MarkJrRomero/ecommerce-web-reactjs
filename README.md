@@ -2,6 +2,33 @@
 
 Una aplicación web de comercio electrónico moderna construida con React, TypeScript y Material-UI. Permite a los usuarios explorar productos, completar compras con un formulario de pago paso a paso y gestionar transacciones de forma segura.
 
+## 📸 Capturas de Pantalla
+
+### 🖥️ Versión Desktop
+
+![Página Principal Desktop](screenshots/pc1.png)
+
+![Formulario de Pago Desktop](screenshots/pc2.png)
+
+![Modal de Tarjeta de Crédito Desktop](screenshots/pc3.png)
+
+![Procesamiento de Pago Desktop](screenshots/pc4.png)
+
+![Confirmación de Transacción Desktop](screenshots/pc5.png)
+
+![Gestión de Errores Desktop](screenshots/pc6.png)
+
+![Responsive Design Desktop](screenshots/pc7.png)
+
+### 📱 Versión Móvil
+
+![Página Principal Móvil](screenshots/mv1.png)
+
+![Formulario de Pago Móvil](screenshots/mv2.png)
+
+![Modal de Tarjeta Móvil](screenshots/mv3.png)
+
+
 ## ✨ Características Principales
 
 ### 🎯 Funcionalidades del Usuario
@@ -18,6 +45,7 @@ Una aplicación web de comercio electrónico moderna construida con React, TypeS
 - **Persistencia Local**: localStorage para guardar datos del formulario
 - **API REST**: Integración con backend para productos y transacciones
 - **TypeScript**: Tipado estático para mayor seguridad y desarrollo eficiente
+- **Tests Unitarios**: Jest y React Testing Library para testing completo
 
 ## 🛠️ Tecnologías Utilizadas
 
@@ -30,6 +58,12 @@ Una aplicación web de comercio electrónico moderna construida con React, TypeS
 - **Yup 1.6.1** - Validación de esquemas
 - **Axios 1.10.0** - Cliente HTTP
 
+### Testing
+- **Jest** - Framework de testing
+- **React Testing Library** - Testing de componentes React
+- **@testing-library/jest-dom** - Matchers adicionales para DOM
+- **ts-jest** - Soporte para TypeScript en tests
+
 ### Herramientas de Desarrollo
 - **Vite 7.0.4** - Bundler y servidor de desarrollo
 - **ESLint 9.30.1** - Linting de código
@@ -41,23 +75,29 @@ Una aplicación web de comercio electrónico moderna construida con React, TypeS
 ecommerce-web-reactjs/
 ├── src/
 │   ├── components/           # Componentes reutilizables
-│   │   ├── form-steps/       # Pasos del formulario de pago
+│   │   ├── __tests__/       # Tests de componentes
+│   │   ├── form-steps/      # Pasos del formulario de pago
 │   │   ├── CreditCardForm.tsx
 │   │   ├── CreditCardModal.tsx
 │   │   ├── ProductCard.tsx
 │   │   └── ...
-│   ├── features/             # Slices de Redux por funcionalidad
-│   │   ├── form/            # Gestión del formulario
-│   │   ├── products/        # Gestión de productos
-│   │   ├── order/           # Gestión de transacciones
-│   │   ├── location/        # Gestión de ubicaciones
-│   │   └── ui/              # Estado de la interfaz
-│   ├── hooks/               # Hooks personalizados
-│   ├── page/                # Páginas principales
-│   ├── redux/               # Configuración de Redux
-│   ├── utils/               # Utilidades y helpers
-│   └── main.tsx            # Punto de entrada
-├── public/                  # Archivos estáticos
+│   ├── features/            # Slices de Redux por funcionalidad
+│   │   ├── __tests__/       # Tests de slices
+│   │   ├── form/           # Gestión del formulario
+│   │   ├── products/       # Gestión de productos
+│   │   ├── transaction/    # Gestión de transacciones
+│   │   ├── location/       # Gestión de ubicaciones
+│   │   └── ui/             # Estado de la interfaz
+│   ├── hooks/              # Hooks personalizados
+│   │   └── __tests__/      # Tests de hooks
+│   ├── utils/              # Utilidades y helpers
+│   │   └── __tests__/      # Tests de utilidades
+│   ├── page/               # Páginas principales
+│   ├── redux/              # Configuración de Redux
+│   ├── types/              # Tipos de TypeScript
+│   └── main.tsx           # Punto de entrada
+├── screenshots/            # Capturas de pantalla
+├── public/                 # Archivos estáticos
 └── package.json
 ```
 
@@ -106,8 +146,37 @@ npm run dev          # Inicia el servidor de desarrollo
 npm run build        # Construye la aplicación para producción
 npm run preview      # Previsualiza la build de producción
 
+# Testing
+npm test             # Ejecuta todos los tests
+npm run test:watch   # Ejecuta tests en modo watch
+npm run test:coverage # Ejecuta tests con reporte de cobertura
+
 # Linting
 npm run lint         # Ejecuta ESLint para verificar el código
+```
+
+## 🧪 Testing
+
+El proyecto incluye un sistema completo de tests unitarios implementado con Jest y React Testing Library.
+
+### Tests Implementados
+
+- ✅ **Tests de Redux Slices**: Estados y acciones de UI y productos
+- ✅ **Tests de Utilidades**: Funciones de formateo y validación
+- ✅ **Tests de Componentes**: Renderizado y interacciones
+- ✅ **Tests de Hooks**: Lógica de polling de transacciones
+
+### Ejecutar Tests
+
+```bash
+# Todos los tests
+npm test
+
+# Tests específicos
+npm test src/features/ui/__tests__/uiSlice.test.ts
+
+# Con cobertura
+npm run test:coverage
 ```
 
 ## 🔧 Backend
