@@ -149,7 +149,7 @@ export default function CreditCardForm() {
               <Alert
                 type="warning"
                 title="Transacción en proceso"
-                message={`Tu compra se está procesando. Verificando estado cada 5 segundos... ${isPolling ? '🔄' : ''}`}
+                message={`Tu compra se está procesando. Esto puede tardar un minuto o dos...`}
               />
             )}
             {transactionStatus === "APPROVED" && (
