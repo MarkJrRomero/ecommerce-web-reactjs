@@ -47,10 +47,11 @@ const transactionSlice = createSlice({
   name: "transaction",
   initialState,
   reducers: {
-    resetOrder: (state) => {
+    resetTransaction: (state) => {
       state.loading = false;
       state.error = null;
       state.success = false;
+      state.transactionResult = null;
     },
     clearError: (state) => {
       state.error = null;
@@ -92,5 +93,5 @@ const transactionSlice = createSlice({
   },
 });
 
-export const { resetOrder, clearError, clearSuccess } = transactionSlice.actions;
+export const { resetTransaction, clearError, clearSuccess } = transactionSlice.actions;
 export default transactionSlice.reducer;

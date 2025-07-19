@@ -2,7 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import productReducer from '../features/products/productSlice';
 import uiReducer from '../features/ui/uiSlice';
 import locationReducer from '../features/location/locationSlice';
-import transactionReducer from '../features/order/transactionSlice';
+import transactionReducer from '../features/transaction/transactionSlice';
 
 export const store = configureStore({
   reducer: {

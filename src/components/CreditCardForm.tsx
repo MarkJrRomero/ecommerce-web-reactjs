@@ -15,9 +15,9 @@ import { fetchCountries } from "../features/location/locationSlice";
 import PersonalDataStep from "./form-steps/PersonalDataStep";
 import CardDataStep from "./form-steps/CardDataStep";
 import SummaryStep from "./form-steps/SummaryStep";
-import { submitTransaction } from "../features/order/transactionData";
-import { clearError } from "../features/order/transactionSlice";
-import type { Transaction } from "../features/order/transactionSlice";
+import { submitTransaction } from "../features/transaction/transactionData";
+import { clearError } from "../features/transaction/transactionSlice";
+import type { Transaction } from "../features/transaction/transactionSlice";
 import CardProcessingAnimation from "./CardProcessingAnimation";
 import Alert from "./Alert";
 import { useTransactionPolling } from "../hooks/useTransactionPolling";
@@ -137,7 +137,7 @@ export default function CreditCardForm() {
               ))}
             </Stepper>
           )}
-                      {transactionState.error && (
+            {transactionState.error && (
               <Alert
                 type="error"
                 title="Error en la transacción"
@@ -152,18 +152,18 @@ export default function CreditCardForm() {
                 message={`Tu compra se está procesando. Verificando estado cada 5 segundos... ${isPolling ? '🔄' : ''}`}
               />
             )}
-            {transactionStatus === "SUCCESS" && (
+            {transactionStatus === "APPROVED" && (
               <Alert
                 type="success"
                 title="¡Transacción exitosa!"
-                message="Tu compra se ha procesado correctamente. ¡Gracias por tu compra!"
+                message="Tu compra se ha procesado correctamente. ¡Gracias por tu compra!, esta ventana se cerrará automáticamente en 10 segundos"
               />
             )}
             {transactionStatus === "DECLINED" && (
               <Alert
                 type="error"
                 title="Transacción rechazada"
-                message="Tu compra fue rechazada. Por favor, verifica tus datos e intenta nuevamente."
+                message="Tu compra fue rechazada (Esto puede pasar por falta de fondos, datos incorrectos, problemas del sistema, etc.), esta ventana se cerrará automáticamente en 10 segundos"
               />
             )}
           <form>

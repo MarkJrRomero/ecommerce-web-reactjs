@@ -5,8 +5,12 @@ import {
   } from '@mui/material';
   import CloseIcon from '@mui/icons-material/Close';
   import CreditCardForm from './CreditCardForm';
-  import { useSelector } from 'react-redux';
-  import type { RootState } from '../redux/store';
+  import { useSelector, useDispatch } from 'react-redux';
+  import type { RootState, AppDispatch } from '../redux/store';
+import { useEffect } from 'react';
+import { useTransactionPolling } from '../hooks/useTransactionPolling';
+import { resetTransaction } from '../features/transaction/transactionSlice';
+import { fetchProducts } from '../features/products/productsData';
   
   type Props = {
     open: boolean;
@@ -29,18 +33,41 @@ import {
   };
   
   export default function CreditCardModal({ open, onClose }: Props) {
+    const dispatch = useDispatch<AppDispatch>();
     const transactionLoading = useSelector((state: RootState) => state.transaction.loading);
     const transactionSuccess = useSelector((state: RootState) => state.transaction.success);
+
+    const { transactionStatus } = useTransactionPolling();
+    
+    useEffect(() => { 
+      if (transactionStatus === "APPROVED" || transactionStatus === "DECLINED") {
+        dispatch(fetchProducts());
+        setTimeout(() => {
+          onClose();
+          dispatch(resetTransaction());
+        }, 10000);
+      }
+    }, [transactionStatus, onClose, dispatch]);
+    
     return (
       <Modal
         open={open}
-        onClose={(transactionLoading || transactionSuccess) ? undefined : onClose}
+        onClose={(transactionLoading || transactionSuccess) ? undefined : (() => {
+          onClose();
+          dispatch(resetTransaction());
+        })}
         disableEscapeKeyDown={transactionLoading}
       >
         <Box sx={style}>
           <Box display="flex" justifyContent="flex-end" alignItems="center">
             {!transactionLoading && !transactionSuccess && (
-              <IconButton onClick={onClose} disabled={transactionLoading}>
+              <IconButton 
+                onClick={() => {
+                  onClose();
+                  dispatch(resetTransaction());
+                }} 
+                disabled={transactionLoading}
+              >
                 <CloseIcon />
               </IconButton>
             )}

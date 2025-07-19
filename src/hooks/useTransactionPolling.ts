@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '../redux/store';
-import { checkTransactionStatus } from '../features/order/transactionData';
+import { checkTransactionStatus } from '../features/transaction/transactionData';
 
 export const useTransactionPolling = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -30,9 +30,9 @@ export const useTransactionPolling = () => {
     };
   }, [dispatch, transactionResult?.id, transactionResult?.status]);
 
-  // Detenemos el polling cuando la transacción se completa (SUCCESS o DECLINED)
+  // Detenemos el polling cuando la transacción se completa (APPROVED o DECLINED)
   useEffect(() => {
-    if (transactionResult?.status === "SUCCESS" || transactionResult?.status === "DECLINED") {
+    if (transactionResult?.status === "APPROVED" || transactionResult?.status === "DECLINED") {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
